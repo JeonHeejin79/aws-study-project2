@@ -47,11 +47,22 @@ jobs:
       run: echo "CurrentTime=${{steps.current-time.outputs.formattedTime}}"
       shell: bash # (9) 확보한 시간 보여주기
 
-    - name: Generate deployment package
-      run: |
-        mkdir -p deploy
-        cp /home/runner/work/aws-study-project2/aws-study-project2/target/*.war deploy/ROOT.war
-        cd deploy && zip -r deploy.zip .
+#    - name: Generate deployment package
+#      run: |
+#        mkdir -p deploy
+#        cp /home/runner/work/aws-study-project2/aws-study-project2/target/*.war deploy/ROOT.war
+#        cd deploy && zip -r deploy.zip .
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      # S3 에 압축된 파일 업로드
+      - name: Upload ROOT.zip
+        run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
 
     # AWS 인증 Elastic Beanstalk 연결
     - name: Deploy Consumer to EB
@@ -64,4 +75,4 @@ jobs:
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
         existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
         version_label: deploy-${{github.sha}}
-        deployment_package: deploy/deploy.zip
+        deployment_package: /deploy-server/ROOT.zip
