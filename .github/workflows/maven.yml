@@ -29,7 +29,6 @@ jobs:
         cache: maven
     # MAVEN 설정
     - name: Build with Maven
-#      working-directory: ./deploy
       run: mvn -B package --file pom.xml
 
     # JDK 설치
@@ -37,25 +36,42 @@ jobs:
       if: ${{ success() }}
       run: echo "Set up JDK 17 is succeeded"
 
+    - name: Get current time
+      uses: 1466587594/get-current-time@v2
+      id: current-time
+      with:
+        format: YYYY-MM-DDTHH-mm-ss
+        utcOffset: "+09:00" # (8) build 시점의 시간확보
+
+    - name: Show Current Time
+      run: echo "CurrentTime=${{steps.current-time.outputs.formattedTime}}"
+      shell: bash # (9) 확보한 시간 보여주기
+
     # 프로젝트 파일 압축
-    - name: Archive ROOT.war to ROOT.zip
-      working-directory: /home/runner/work/aws-study-project2/aws-study-project2/
-      run: zip -j ./ROOT.zip ROOT.war ./appspec.yml
+#    - name: Archive ROOT.war to ROOT.zip
+#      working-directory: /home/runner/work/aws-study-project2/aws-study-project2/
+#      run: zip -j ./ROOT.zip ROOT.war ./appspec.yml
 
     # AWS 인증
-    - name: Access to AWS
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: ap-northeast-2
+#    - name: Access to AWS
+#      uses: aws-actions/configure-aws-credentials@v2
+#      with:
+#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+#        aws-region: ap-northeast-2
 
     # S3 에 압축된 파일 업로드
 #    - name: Upload ROOT.zip
 #      run: aws s3 cp --region ap-northeast-2 ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
 
     - name: Generate deployment package
-      run: zip -r ROOT.zip . -x '*.git*'
+      run: |
+        mkdir -p deploy
+        cp build/libs/*.war deploy/ROOT.war
+        cp Procfile deploy/Procfile
+        cp -r .ebextensions deploy/.ebextensions
+        cp -r .platform deploy/.platform
+        cd deploy && zip -r deploy.zip .
 
     # AWS 인증 Elastic Beanstalk 연결
     - name: Deploy Consumer to EB
@@ -68,7 +84,7 @@ jobs:
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
         existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
         version_label: deploy-${{github.sha}}
-        deployment_package: ROOT.zip
+        deployment_package: deploy/deploy.zip
 
       # CodeDeploy 배포
 #    - name: 🚀 Deploy to EC2 with CodeDeploy
