@@ -42,6 +42,10 @@ jobs:
       working-directory: /home/runner/work/aws-study-project2/aws-study-project2/
       run: zip -j ./ROOT.zip ROOT.war ./appspec.yml
 
+    # S3 에 압축된 파일 업로드
+    - name: Upload ROOT.zip
+      run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
+
     # AWS 인증 Elastic Beanstalk 연결
     - name: Access to AWS
       uses: aws-actions/configure-aws-credentials@v2
@@ -53,7 +57,7 @@ jobs:
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
         existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
         version_label: deploy-${{github.sha}}
-        deployment_package: ./ROOT.war
+        deployment_package: deploy-server/ROOT.war
 
       # CodeDeploy 배포
 #    - name: 🚀 Deploy to EC2 with CodeDeploy
