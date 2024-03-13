@@ -27,18 +27,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+    # MAVEN 설정
     - name: Build with Maven
+      working-directory: ./deploy
       run: mvn -B package --file pom.xml
 
     # JDK 설치
     - name: Set up JDK 17 (job success)
       if: ${{ success() }}
       run: echo "Set up JDK 17 is succeeded"
-
-    # MAVEN 설정
-    - name: Build with Maven
-      working-directory: ./deploy
-      run: mvn -B package --file pom.xml
 
     # 프로젝트 파일 압축
     - name: Archive ROOT.war to ROOT.zip
