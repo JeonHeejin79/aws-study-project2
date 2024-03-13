@@ -47,34 +47,38 @@ jobs:
       run: echo "CurrentTime=${{steps.current-time.outputs.formattedTime}}"
       shell: bash # (9) 확보한 시간 보여주기
 
-#    - name: Generate deployment package
-#      run: |
-#        mkdir -p deploy
-#        cp /home/runner/work/aws-study-project2/aws-study-project2/target/*.war deploy/ROOT.war
-#        cd deploy && zip -r deploy.zip .
-        # 프로젝트 파일 압축
-    - name: Archive ROOT.war to ROOT.zip
-      run: zip -j ./ROOT.zip /home/runner/work/aws-study-project2/aws-study-project2/target/ROOT.war ./appspec.yml
+    - name: Generate deployment package
+      run: |
+        mkdir -p deploy
+        cp /home/runner/work/aws-study-project2/aws-study-project2/target/*.war deploy/ROOT.war
+        cp Procfile deploy/Procfile
+        cp -r .ebextensions deploy/.ebextensions
+        cp -r .platform deploy/.platform
+        cd deploy && zip -r deploy.zip .
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: ap-northeast-2
+    # 프로젝트 파일 압축
+#    - name: Archive ROOT.war to ROOT.zip
+#      run: zip -j ./ROOT.zip /home/runner/work/aws-study-project2/aws-study-project2/target/ROOT.war ./appspec.yml
+#
+#    - name: Configure AWS credentials
+#      uses: aws-actions/configure-aws-credentials@v1
+#      with:
+#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+#        aws-region: ap-northeast-2
 
     # S3 에 압축된 파일 업로드
-    - name: Upload ROOT.zip
-      run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
+#    - name: Upload ROOT.zip
+#      run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
 
     # AWS 인증 Elastic Beanstalk 연결
     - name: Deploy Consumer to EB
-      uses: einaregilsson/beanstalk-deploy@v14
+      uses: einaregilsson/beanstalk-deploy@v21
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
         aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
         region: ap-northeast-2
         application_name: api-application-eb
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
-        existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
-        deployment_package: ROOT.zip
+        version_label: github-action-${{steps.current-time.outputs.formattedTime}}
+        deployment_package: deploy/deploy.zip
