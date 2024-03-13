@@ -50,7 +50,7 @@ jobs:
     - name: Generate deployment package
       run: |
         mkdir -p deploy
-        cp build/libs/*.war deploy/ROOT.war
+        cp /home/runner/work/aws-study-project2/aws-study-project2/target/*.war deploy/ROOT.war
         cd deploy && zip -r deploy.zip .
 
     # AWS 인증 Elastic Beanstalk 연결
