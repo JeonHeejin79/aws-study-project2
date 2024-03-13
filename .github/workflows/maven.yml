@@ -52,6 +52,9 @@ jobs:
 #        mkdir -p deploy
 #        cp /home/runner/work/aws-study-project2/aws-study-project2/target/*.war deploy/ROOT.war
 #        cd deploy && zip -r deploy.zip .
+        # 프로젝트 파일 압축
+    - name: Archive ROOT.war to ROOT.zip
+      run: zip -j ./ROOT.zip /home/runner/work/aws-study-project2/aws-study-project2/target/ROOT.war ./appspec.yml
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
