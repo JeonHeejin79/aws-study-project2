@@ -56,13 +56,13 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ap-northeast-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-region: ap-northeast-2
 
-      # S3 에 압축된 파일 업로드
-      - name: Upload ROOT.zip
-        run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
+    # S3 에 압축된 파일 업로드
+    - name: Upload ROOT.zip
+      run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
 
     # AWS 인증 Elastic Beanstalk 연결
     - name: Deploy Consumer to EB
