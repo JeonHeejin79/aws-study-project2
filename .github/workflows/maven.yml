@@ -77,5 +77,4 @@ jobs:
         application_name: api-application-eb
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
         existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
-        version_label: deploy-${{github.sha}}
         deployment_package: ROOT.zip
