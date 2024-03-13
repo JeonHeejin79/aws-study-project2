@@ -51,8 +51,9 @@ jobs:
         aws-region: ap-northeast-2
         application_name: api-application-eb
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
+        existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
         version_label: deploy-${{github.sha}}
-        deployment_package: ./deploy/ROOT.war
+        deployment_package: ./ROOT.war
 
       # CodeDeploy 배포
 #    - name: 🚀 Deploy to EC2 with CodeDeploy
