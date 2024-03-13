@@ -37,20 +37,13 @@ jobs:
 
     # MAVEN 설정
     - name: Build with Maven
+      working-directory: ./deploy
       run: mvn -B package --file pom.xml
 
     # 프로젝트 파일 압축
     - name: Archive ROOT.war to ROOT.zip
-      run: zip -j ./ROOT.zip /home/runner/work/aws-study-project1/aws-study-project1/target/ROOT.war ./appspec.yml
-
-    # 배포 설정
-    - name: Generate deployment package
-      run: |
-        mkdir -p deploy
-        cp /home/runner/work/aws-study-project1/aws-study-project1/target/ROOT.war deploy/ROOT.jar
-        cp Procfile deploy/Procfile
-        cp -r .ebextensions deploy/.ebextensions
-        cd deploy && zip -r todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}} .
+      working-directory: ./deploy
+      run: zip -j ./ROOT.zip ROOT.war ./appspec.yml
 
     # AWS 인증 Elastic Beanstalk 연결
     - name: Access to AWS
@@ -61,8 +54,8 @@ jobs:
         aws-region: ap-northeast-2
         application_name: api-application-eb
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
-        version_label: todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}}
-        deployment_package: deploy/todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}}.zip
+        version_label: deploy-${{github.sha}}
+        deployment_package: ./deploy/ROOT.war
 
       # CodeDeploy 배포
 #    - name: 🚀 Deploy to EC2 with CodeDeploy
