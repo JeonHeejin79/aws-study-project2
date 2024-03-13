@@ -30,6 +30,44 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-    - name: Update dependency graph
-      uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+    # JDK 설치
+    - name: Set up JDK 17 (job success)
+      if: ${{ success() }}
+      run: echo "Set up JDK 17 is succeeded"
+
+    # MAVEN 설정
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    # 프로젝트 파일 압축
+    - name: Archive ROOT.war to ROOT.zip
+      run: zip -j ./ROOT.zip /home/runner/work/aws-study-project1/aws-study-project1/target/ROOT.war ./appspec.yml
+
+    # 배포 설정
+    - name: Generate deployment package
+      run: |
+        mkdir -p deploy
+        cp server-app/build/libs/server-app.jar deploy/todo-application-prod-ebextensions-1.jar
+        cp Procfile deploy/Procfile
+        cp -r .ebextensions deploy/.ebextensions
+        cd deploy && zip -r todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}} .
+
+    # AWS 인증 Elastic Beanstalk 연결
+    - name: Access to AWS
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-region: ap-northeast-2
+        application_name: api-application-eb
+        environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
+        version_label: todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}}
+        deployment_package: deploy/todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}}.zip
+
+      # CodeDeploy 배포
+#    - name: 🚀 Deploy to EC2 with CodeDeploy
+#      run: aws deploy create-deployment
+#        --application-name my-deploy-app
+#        --deployment-config-name CodeDeployDefault.AllAtOnce
+#        --deployment-group-name production
+#        --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},bundleType=zip,key=deploy-server/ROOT.zip
