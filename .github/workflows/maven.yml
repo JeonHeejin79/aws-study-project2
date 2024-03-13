@@ -47,7 +47,7 @@ jobs:
     - name: Generate deployment package
       run: |
         mkdir -p deploy
-        cp server-app/build/libs/server-app.jar deploy/todo-application-prod-ebextensions-1.jar
+        cp /home/runner/work/aws-study-project1/aws-study-project1/target/ROOT.war deploy/ROOT.jar
         cp Procfile deploy/Procfile
         cp -r .ebextensions deploy/.ebextensions
         cd deploy && zip -r todo-application-prod-label-${{steps.current-time.outputs.formattedTime}}-${{github.sha}} .
