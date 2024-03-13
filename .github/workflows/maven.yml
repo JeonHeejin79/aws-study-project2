@@ -51,8 +51,11 @@ jobs:
         aws-region: ap-northeast-2
 
     # S3 에 압축된 파일 업로드
-    - name: Upload ROOT.zip
-      run: aws s3 cp --region ap-northeast-2 ./ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
+#    - name: Upload ROOT.zip
+#      run: aws s3 cp --region ap-northeast-2 ROOT.zip s3://elasticbeanstalk-ap-northeast-2-211125346644/deploy-server/ROOT.zip
+
+    - name: Generate deployment package
+      run: zip -r ROOT.zip . -x '*.git*'
 
     # AWS 인증 Elastic Beanstalk 연결
     - name: Deploy Consumer to EB
@@ -60,12 +63,12 @@ jobs:
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
         aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: ap-northeast-2
+        region: ap-northeast-2
         application_name: api-application-eb
         environment_name: Api-application-eb-env # Elastic Beanstalk > 환경명
         existing_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
         version_label: deploy-${{github.sha}}
-        deployment_package: deploy-server/ROOT.war
+        deployment_package: ROOT.zip
 
       # CodeDeploy 배포
 #    - name: 🚀 Deploy to EC2 with CodeDeploy
